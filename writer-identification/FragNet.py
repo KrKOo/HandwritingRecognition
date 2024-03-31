@@ -101,7 +101,7 @@ class FragNet(nn.Module):
         
         step = 16
         
-        #print(xlist[0].shape)
+        print(xlist[0].shape)
         
         # input image
         reslist = []

@@ -24,7 +24,7 @@ import numpy as np
 import os
 
 LMDB_PATH_HOST="/home/jovyan/data/HWR.2021-11-08/lmdb.hwr_40-1.0"
-TRN_DATA="/home/jovyan/data/HWR.2021-11-08/dataset_gt/pero.ceske_dopisy.ceske_kroniky.embed/final.2021-11-18/lines.filtered_max_width.trn.550"
+TRN_DATA="/home/jovyan/data/HWR.2021-11-08/dataset_gt/pero.ceske_dopisy.ceske_kroniky.embed/final.2021-11-18/lines.filtered_max_width.trn.550.shuf"
 TST_DATA="/home/jovyan/data/HWR.2021-11-08/dataset_gt/pero.ceske_dopisy.ceske_kroniky.embed/final.2021-11-18/lines.filtered_max_width.tst.550"
 
 
@@ -156,7 +156,6 @@ class DeepWriter_Train:
             self.load_model(start_epoch-1)
 
         for epoch in range(start_epoch,num_epoch):
-            print("EPOCH: ", epoch)
             self.train(epoch)
             self.checkpoint(epoch)
             self.test(epoch)
@@ -183,7 +182,7 @@ if __name__ == '__main__':
     mode = modelist[0]
     
     mod = DeepWriter_Train(mode=mode)
-    mod.train_loops(3,50)
+    mod.train_loops(0,50)
 
 
 

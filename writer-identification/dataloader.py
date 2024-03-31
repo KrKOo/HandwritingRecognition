@@ -37,7 +37,6 @@ class DatasetFromLMDB(data.Dataset):
         for label in self.labels:
             self.image_to_writer[label[0]] = label[1]
 
-        print("HERE 1")
         self.idlist = self._get_all_identity()
         self.idx_tab = self._convert_identity2index(self.savename)
         self.num_writer = len(self.idx_tab)
@@ -61,7 +60,6 @@ class DatasetFromLMDB(data.Dataset):
                         
     # get all writer identity
     def _get_all_identity(self):
-        print("ALL IDEN")
         writer_list = []
         for label in self.labels:
             img = label[0]
