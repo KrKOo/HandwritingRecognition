@@ -31,7 +31,7 @@ class DatasetFromLMDB(data.Dataset):
         self.lmdb_txn = lmdb.open(lmdb_path, readonly=True).begin()
 
         self.image_to_writer = {}
-        with open(labels_path) as f:
+        with open(labels_path, encoding='utf-8') as f:
             self.labels = np.array([line.rstrip().split(" ", 2) for line in f])
 
         for label in self.labels:
@@ -72,12 +72,11 @@ class DatasetFromLMDB(data.Dataset):
         return self.image_to_writer[fname]
         
     def transform(self):
-            return Compose([
-                ToTensor(),
-                Grayscale(),
-                Lambda(lambda x: x / 255.),
-                Resize((200, 50)),
-            ])
+        return Compose([
+            ToTensor(),
+            Lambda(lambda x: x / 255.),
+            Resize((200, 50)),
+        ])
 
     def __getitem__(self, index):
         image_name = self.labels[index][0]
