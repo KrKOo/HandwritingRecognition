@@ -74,7 +74,7 @@ class DatasetFromLMDB(data.Dataset):
     def transform(self):
         return Compose([
             ToTensor(),
-            Lambda(lambda x: x / 255.),
+            # Lambda(lambda x: x / 255.),
             Resize((200, 50)),
         ])
 
