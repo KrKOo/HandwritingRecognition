@@ -75,7 +75,9 @@ class DatasetFromLMDB(data.Dataset):
         return Compose([
             ToTensor(),
             # Lambda(lambda x: x / 255.),
-            Resize((200, 50)),
+            
+            Grayscale(3),
+            Resize((224, 224)),
         ])
 
     def __getitem__(self, index):
@@ -87,9 +89,10 @@ class DatasetFromLMDB(data.Dataset):
         image = self.transform()(image)
 
         writer = self.idx_tab[self._get_identity(image_name)]
-        writer = torch.from_numpy(np.array(writer))
+        # writer = torch.from_numpy(np.array(writer))
 
-        return image, writer, image_name
+        # return image, writer, image_name
+        return image, writer
 
     def __len__(self):
         return len(self.labels)
