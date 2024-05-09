@@ -6,6 +6,9 @@ from tqdm import tqdm
 import multiprocessing
 from imgaug import augmenters as iaa
 from sklearn.utils import shuffle
+import torchvision.transforms.functional as TF
+import torch.nn.functional as F
+import torch
 
 def preprocess_images(images):
     images_scaled_up = (images * 255).astype(np.uint8)
@@ -32,12 +35,37 @@ def create_elastic_deformation():
     return iaa.ElasticTransformation(alpha=(0, 5.0), sigma=0.25)
 
 def apply_erode(image, iterations=1, kernel_size=(3, 3)):
-    kernel = np.ones(kernel_size, np.float32)
-    return cv2.erode(image, kernel, iterations=iterations)
+    padding = tuple(k // 2 for k in kernel_size)
+    image = image.unsqueeze(0) if image.dim() == 3 else image
+
+    for _ in range(iterations):
+        _, channels, height, width = image.shape
+        unfolded = F.unfold(image, kernel_size=kernel_size, padding=padding, stride=1)
+        eroded = unfolded.min(dim=1, keepdim=True)[0]
+
+        output_height = (height + 2 * padding[0] - kernel_size[0]) + 1
+        output_width = (width + 2 * padding[1] - kernel_size[1]) + 1
+
+        image = eroded.view(image.size(0), channels, output_height, output_width)
+
+    return image.squeeze(0)
 
 def apply_dilate(image, iterations=1, kernel_size=(3, 3)):
-    kernel = np.ones(kernel_size, np.float32)
-    return cv2.dilate(image, kernel, iterations=iterations)
+    padding = tuple(k // 2 for k in kernel_size)
+    image = image.unsqueeze(0) if image.dim() == 3 else image
+
+    for _ in range(iterations):
+        _, channels, height, width = image.shape
+        unfolded = F.unfold(image, kernel_size=kernel_size, padding=padding, stride=1)
+        dilated = unfolded.max(dim=1, keepdim=True)[0]
+
+        output_height = (height + 2 * padding[0] - kernel_size[0]) + 1
+        output_width = (width + 2 * padding[1] - kernel_size[1]) + 1
+
+        image = dilated.view(image.size(0), channels, output_height, output_width)
+
+    return image.squeeze(0)
+
 
 def create_flip_augmenters():
     horizontal_flip = iaa.Fliplr(1.0)
@@ -150,3 +178,35 @@ def enrich_and_shuffle_dataset(images, labels, random_state=42, num_processes=No
     augmented_images, augmented_labels = shuffle(augmented_images, augmented_labels, random_state=random_state)
 
     return augmented_images, augmented_labels
+
+def transform(image):
+    # Náhodné zrkadlenie
+    if torch.rand(1).item() > 0.5:
+        if torch.rand(1).item() > 0.5:
+            image = TF.hflip(image)
+        else:
+            image = TF.vflip(image)
+    # Náhodný jas a kontrast
+    if torch.rand(1).item() > 0.5:
+        brightness_factor = torch.rand(1).item() * 0.4 + 0.8 
+        image = TF.adjust_brightness(image, brightness_factor)
+    if torch.rand(1).item() > 0.5:
+        contrast_factor = torch.rand(1).item() * 0.4 + 0.8  
+        image = TF.adjust_contrast(image, contrast_factor)
+    # Pridanie šumu
+    if torch.rand(1).item() > 0.5:
+        noise = torch.randn_like(image) * 0.1
+        image += noise
+        image = torch.clamp(image, 0, 1) 
+    # Rozmazanie
+    if torch.rand(1).item() > 0.5:  
+        blur_kernel_size = (3, 3)  # veľkosť jadra rozmazania
+        image = TF.gaussian_blur(image, blur_kernel_size)
+    # Eroze alebo dilatácia
+    if torch.rand(1).item() > 0.5:
+      if torch.rand(1).item() > 0.5:  
+        image = apply_erode(image)
+      else:
+        image = apply_dilate(image)
+
+    return image
