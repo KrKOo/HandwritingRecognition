@@ -47,10 +47,10 @@ class MyVGG(nn.Module):
         embedding_size = 512
         # Additional metric learning layers
         self.fc1 = nn.Linear(512 * 7 * 7, embedding_size)
-        self.fc2 = nn.Linear(embedding_size, 256)
         self.norm = nn.BatchNorm1d(embedding_size)
         self.relu = nn.ReLU(inplace=True)
         self.dropout = nn.Dropout(p=0.5)
+        self.fc2 = nn.Linear(embedding_size, 256)
         
     def forward(self, x):
         # Pass input through the pretrained VGG network
@@ -82,9 +82,9 @@ class MyTransformer(nn.Module):
         self.vit_model.heads = nn.Identity()
         
         self.additional_layers = nn.Sequential(
-            nn.Linear(768, 256),  # Example additional layer
+            nn.Linear(768, 256),
             nn.ReLU(),
-            nn.Linear(256, 512)  # Example additional layer
+            nn.Linear(256, 512)
         )
         
     def forward(self, x):
